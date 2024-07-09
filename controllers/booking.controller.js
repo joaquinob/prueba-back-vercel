@@ -5,7 +5,7 @@ const bookingController = {
     // Crear una nueva reserva
     createBooking: async (req, res) => {
         try {
-            const { user, vehicle, startDate, endDate, price, discount } = req.body;
+            const { vehicle, startDate, endDate, price, discount } = req.body;
 
             // Verificar disponibilidad del vehículo
             const vehicleAvailable = await Vehicle.findById(vehicle);
@@ -14,7 +14,7 @@ const bookingController = {
             }
 
             const newBooking = new Booking({
-                user,
+                user: req.user._id,
                 vehicle,
                 startDate,
                 endDate,
@@ -61,6 +61,18 @@ const bookingController = {
         }
     },
 
+       // Obtener todas las reservas
+       getAllBookings: async (req, res) => {
+        try {
+            const bookings = await Booking.find().populate('vehicle').populate('user');
+
+            res.status(200).json(bookings);
+        } catch (error) {
+            res.status(500).json({ message: 'Error al obtener las reservas de los usuarios', error: error.message });
+        }
+    },
+
+
     // Cancelar una reserva
     cancelBooking: async (req, res) => {
         try {
@@ -80,7 +92,32 @@ const bookingController = {
         } catch (error) {
             res.status(500).json({ message: 'Error al cancelar la reserva', error: error.message });
         }
+    },
+
+
+  // Editar una reserva
+   editBooking: async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { startDate, endDate } = req.body;
+
+        // Encontrar la reserva
+        const booking = await Booking.findById(id);
+        if (!booking) {
+            return res.status(404).json({ message: 'Reserva no encontrada' });
+        }
+
+        // Actualizar los campos de la reserva
+        booking.startDate = startDate || booking.startDate;
+        booking.endDate = endDate || booking.endDate;
+
+        await booking.save();
+
+        res.status(200).json({ message: 'Booking updated successfully', booking });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar la reserva', error: error.message });
     }
+}
 };
 
 module.exports = bookingController;

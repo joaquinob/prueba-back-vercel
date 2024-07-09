@@ -47,4 +47,4 @@ const restrictToSelf = (req, res, next) => {
     next();
 };
 
-module.exports = { protect,restrictTo,restrictToSelf };
+module.exports = { protect, restrictTo, restrictToSelf };
